@@ -925,5 +925,10 @@ window.addEventListener('resize',()=>{
   if(currentScreen==='gameScreen'&&gameRunning){gc.width=window.innerWidth;gc.height=window.innerHeight;W=gc.width;H=gc.height;}
 });
 </script>
+<div style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(5,5,15,0.98),rgba(10,10,20,0.95));border-top:1px solid rgba(200,160,80,0.4);display:flex;justify-content:center;align-items:center;gap:16px;padding:10px 20px;z-index:999;">
+<button onclick="saveProgress()" style="font-family:'Cinzel Decorative',serif;font-size:11px;letter-spacing:2px;color:#f0c060;background:linear-gradient(180deg,rgba(30,20,5,0.9),rgba(10,8,2,0.95));border:1px solid rgba(107,80,16,0.8);padding:10px 24px;cursor:pointer;">💾 Save Progress</button>
+<button onclick="renderLB()" style="font-family:'Cinzel Decorative',serif;font-size:11px;letter-spacing:2px;color:#4ade80;background:linear-gradient(180deg,rgba(5,20,5,0.9),rgba(2,10,2,0.95));border:1px solid rgba(74,222,128,0.4);padding:10px 24px;cursor:pointer;">↻ Leaderboard</button>
+<button onclick="showScreen('startScreen')" style="font-family:'Cinzel Decorative',serif;font-size:11px;letter-spacing:2px;color:#ff8888;background:linear-gradient(180deg,rgba(30,5,5,0.9),rgba(10,2,2,0.95));border:1px solid rgba(180,40,40,0.5);padding:10px 24px;cursor:pointer;">☠ Quit</button>
+</div>
 </body>
 </html>
