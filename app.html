@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZOMBIE SLAUGHTER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#05050a; --bg2:#0a0a14; --purple:#7c3aed; --purple-light:#c084fc;
+  --gold:#c9a227; --gold-light:#f0c060; --gold-dim:#6b5010;
+  --red:#cc2222; --red-light:#ff4466; --green:#22aa44;
+  --text:#e8e0f0; --text-dim:#8878a8;
+  --border:rgba(200,160,80,0.3); --border-strong:rgba(200,160,80,0.7);
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:'IM Fell English',serif;overflow:hidden;user-select:none;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.5s ease;z-index:10;}
+.screen.active{opacity:1;pointer-events:all;}
+#bgCanvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;}
+.gothic-frame{position:relative;background:linear-gradient(160deg,rgba(15,10,30,0.97),rgba(5,5,15,0.99));border:1px solid var(--border-strong);padding:40px 48px;min-width:440px;max-width:520px;width:90vw;}
+.gothic-frame::before,.gothic-frame::after{content:'';position:absolute;width:24px;height:24px;border-color:var(--gold);border-style:solid;}
+.gothic-frame::before{top:-2px;left:-2px;border-width:2px 0 0 2px;}
+.gothic-frame::after{bottom:-2px;right:-2px;border-width:0 2px 2px 0;}
+.gothic-frame .corner-tr{position:absolute;top:-2px;right:-2px;width:24px;height:24px;border-top:2px solid var(--gold);border-right:2px solid var(--gold);}
+.gothic-frame .corner-bl{position:absolute;bottom:-2px;left:-2px;width:24px;height:24px;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold);}
+.game-title{font-family:'Cinzel Decorative',serif;font-size:clamp(28px,5.5vw,54px);color:var(--gold-light);text-shadow:0 0 30px rgba(200,150,40,0.6),0 0 60px rgba(200,150,40,0.2);text-align:center;letter-spacing:4px;line-height:1.1;margin-bottom:6px;}
+.game-subtitle{font-family:'Cinzel',serif;font-size:11px;letter-spacing:6px;color:var(--text-dim);text-align:center;text-transform:uppercase;margin-bottom:32px;}
+.gothic-input-wrap{position:relative;margin-bottom:28px;}
+.gothic-input-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:4px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;display:block;}
+.gothic-input{width:100%;background:rgba(5,5,15,0.8);border:1px solid var(--border);border-bottom:1px solid var(--border-strong);color:var(--text);font-family:'Cinzel',serif;font-size:15px;letter-spacing:2px;padding:12px 16px;outline:none;text-align:center;transition:border-color 0.3s,box-shadow 0.3s;}
+.gothic-input:focus{border-color:var(--gold);box-shadow:0 0 20px rgba(200,160,40,0.15);}
+.gothic-input::placeholder{color:var(--text-dim);font-size:13px;letter-spacing:1px;}
+.btn-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+.gothic-btn{position:relative;font-family:'Cinzel Decorative',serif;font-size:13px;letter-spacing:2px;color:var(--gold-light);background:linear-gradient(180deg,rgba(30,20,5,0.9),rgba(10,8,2,0.95));border:1px solid var(--gold-dim);padding:14px 32px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;min-width:160px;overflow:hidden;}
+.gothic-btn:hover{border-color:var(--gold);color:#fff;box-shadow:0 0 20px rgba(200,160,40,0.25),inset 0 0 20px rgba(200,160,40,0.06);}
+.gothic-btn:active{transform:scale(0.97);}
+.gothic-btn.danger{color:#ff8888;border-color:rgba(180,40,40,0.5);background:linear-gradient(180deg,rgba(30,5,5,0.9),rgba(10,2,2,0.95));}
+.gothic-btn.danger:hover{border-color:var(--red-light);box-shadow:0 0 20px rgba(200,40,40,0.25);}
+.gothic-btn.wide{min-width:100%;}
+.divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:var(--gold-dim);font-size:18px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-strong));}
+.divider::after{transform:scaleX(-1);}
+.lb-wrap{margin-top:28px;border:1px solid var(--border);max-height:200px;overflow-y:auto;}
+.lb-wrap::-webkit-scrollbar{width:4px;}
+.lb-wrap::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:2px;}
+.lb-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:4px;color:var(--gold-dim);text-transform:uppercase;padding:10px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(200,160,80,0.08);font-family:'Cinzel',serif;font-size:12px;}
+.lb-row.you{background:rgba(124,58,237,0.15);border-left:2px solid var(--purple);}
+.lb-rank{color:var(--gold-dim);min-width:24px;font-size:11px;}
+.lb-rank.top{color:var(--gold-light);}
+.lb-name{flex:1;color:var(--text);}
+.lb-score{color:var(--gold);letter-spacing:1px;}
+#gameScreen{z-index:5;background:var(--bg);}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;cursor:none;}
+#gameUI{position:absolute;inset:0;pointer-events:none;}
+.hud-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:14px 20px;background:linear-gradient(to bottom,rgba(5,5,15,0.8),transparent);}
+.hud-stat{display:flex;flex-direction:column;gap:3px;}
+.hud-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;}
+.hud-value{font-family:'Cinzel',serif;font-size:20px;color:var(--gold-light);letter-spacing:1px;font-weight:700;}
+.hud-health{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:220px;text-align:center;}
+.hud-health-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px;}
+.hud-health-bar{width:100%;height:5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);}
+.hud-health-fill{height:100%;background:linear-gradient(90deg,var(--red),#ff6688);transition:width 0.15s;}
+#waveAnnounce{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:42px;color:var(--gold-light);text-shadow:0 0 40px rgba(200,150,40,0.8);pointer-events:none;opacity:0;transition:opacity 0.5s;white-space:nowrap;letter-spacing:4px;}
+/* Blade tier HUD */
+#bladeHUD{position:absolute;bottom:20px;right:20px;text-align:right;pointer-events:none;}
+#bladeTierLabel{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px;}
+#bladeTierName{font-family:'Cinzel Decorative',serif;font-size:14px;letter-spacing:1px;}
+#bladeProgressBar{width:120px;height:3px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);margin-top:4px;margin-left:auto;}
+#bladeProgressFill{height:100%;transition:width 0.3s;}
+/* Tier upgrade flash */
+#tierFlash{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 0.1s;}
+/* Multiplayer */
+#mpPlayers{position:absolute;top:14px;right:20px;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.mp-player-tag{font-family:'Cinzel',serif;font-size:11px;padding:4px 10px;background:rgba(5,5,15,0.7);border:1px solid var(--border);color:var(--text);}
+.mp-player-tag.dead{color:var(--red);border-color:rgba(180,40,40,0.4);}
+/* Pause overlay */
+#pauseOverlay{position:absolute;inset:0;background:rgba(5,5,15,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:20;pointer-events:none;opacity:0;transition:opacity 0.4s;}
+#pauseOverlay.active{opacity:1;pointer-events:all;}
+#pauseOverlay h2{font-family:'Cinzel Decorative',serif;font-size:36px;color:var(--gold-light);letter-spacing:3px;}
+#pauseOverlay .final-score{font-family:'Cinzel Decorative',serif;font-size:36px;color:var(--purple-light);}
+#pauseOverlay .sub{font-family:'Cinzel',serif;font-size:12px;color:var(--text-dim);letter-spacing:2px;}
+/* Multiplayer lobby */
+.room-code-display{font-family:'Cinzel Decorative',serif;font-size:28px;letter-spacing:8px;color:var(--gold-light);text-align:center;padding:16px;background:rgba(5,5,15,0.8);border:1px solid var(--border-strong);cursor:pointer;transition:box-shadow 0.3s;}
+.room-code-display:hover{box-shadow:0 0 20px rgba(200,160,40,0.2);}
+.copy-hint{font-family:'IM Fell English',serif;font-size:11px;color:var(--text-dim);text-align:center;margin-top:6px;font-style:italic;}
+.tabs{display:flex;margin-bottom:20px;gap:0;}
+.tab-btn{flex:1;font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:9px 4px;cursor:pointer;transition:all 0.2s;}
+.tab-btn.active{background:rgba(200,160,40,0.08);color:var(--gold-light);border-color:var(--border-strong);}
+#toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;color:var(--gold-light);background:rgba(5,5,15,0.95);border:1px solid var(--border-strong);padding:10px 24px;opacity:0;transition:opacity 0.3s;z-index:999;pointer-events:none;}
+#toast.show{opacity:1;}
+/* surge warning */
+#surgeWarning{position:absolute;top:60px;left:50%;transform:translateX(-50%);font-family:'Cinzel Decorative',serif;font-size:14px;letter-spacing:3px;color:#ff4444;text-transform:uppercase;pointer-events:none;opacity:0;transition:opacity 0.5s;text-shadow:0 0 20px rgba(255,60,60,0.8);}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<!-- SCREEN 1: START -->
+<div class="screen active" id="startScreen">
+  <div style="text-align:center;margin-bottom:28px;position:relative;">
+    <canvas id="heroPreviewCanvas" width="140" height="140" style="display:block;margin:0 auto 12px;"></canvas>
+    <div class="game-title">Zombie Slaughter</div>
+    <div class="game-subtitle">A Tale of Blood &amp; Ruin</div>
+  </div>
+  <div class="gothic-frame" style="z-index:1;">
+    <div class="corner-tr"></div><div class="corner-bl"></div>
+    <div class="gothic-input-wrap">
+      <label class="gothic-input-label">Your Name, Warrior</label>
+      <input class="gothic-input" id="nameInput" maxlength="18" placeholder="Enter thy name..." autocomplete="off" spellcheck="false">
+    </div>
+    <div class="btn-row">
+      <button class="gothic-btn" onclick="goToModeSelect()">⚔ Play</button>
+      <button class="gothic-btn danger" onclick="renderLB()">☠ Scores</button>
+    </div>
+    <div class="divider">✦</div>
+    <div class="tabs">
+      <button class="tab-btn active" id="lbTab" onclick="switchTab('lb')">Hall of Fame</button>
+      <button class="tab-btn" id="nearTab" onclick="switchTab('near')">Nearby Warriors</button>
+    </div>
+    <div class="lb-wrap" id="lbContainer">
+      <div class="lb-title"><span>Rank · Name</span><span>Score</span></div>
+      <div id="lbRows"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <button class="gothic-btn wide" onclick="saveProgress()" style="font-size:10px;padding:10px 16px;min-width:0;flex:1;">💾 Save Progress</button>
+      <button class="gothic-btn wide" onclick="renderLB()" style="font-size:10px;padding:10px 16px;min-width:0;flex:1;border-color:rgba(74,222,128,0.4);color:#4ade80;">↻ Refresh</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: MODE SELECT -->
+<div class="screen" id="modeScreen">
+  <div class="game-title" style="margin-bottom:8px;">Choose Thy Path</div>
+  <div class="game-subtitle" style="margin-bottom:32px;">Single or united in slaughter?</div>
+  <div class="gothic-frame" style="z-index:1;">
+    <div class="corner-tr"></div><div class="corner-bl"></div>
+    <div class="btn-row" style="flex-direction:column;gap:14px;">
+      <button class="gothic-btn wide" onclick="startSinglePlayer()">⚔ Single Player</button>
+      <button class="gothic-btn wide" onclick="goToMultiplayer()">⚔⚔ Multiplayer</button>
+    </div>
+    <div class="divider">✦</div>
+    <button class="gothic-btn wide danger" onclick="showScreen('startScreen')">← Return</button>
+  </div>
+</div>
+
+<!-- SCREEN 3: MULTIPLAYER -->
+<div class="screen" id="mpScreen">
+  <div class="game-title" style="margin-bottom:8px;">War Council</div>
+  <div class="game-subtitle" style="margin-bottom:24px;">Unite thy brethren in battle</div>
+  <div class="gothic-frame" style="z-index:1;max-width:480px;">
+    <div class="corner-tr"></div><div class="corner-bl"></div>
+    <div class="tabs">
+      <button class="tab-btn active" id="hostTab" onclick="switchMpTab('host')">Host Battle</button>
+      <button class="tab-btn" id="joinTab" onclick="switchMpTab('join')">Join Battle</button>
+    </div>
+    <div id="mpHostSection">
+      <label class="gothic-input-label">Thy Battle Code</label>
+      <div class="room-code-display" id="roomCodeDisplay" onclick="copyRoomCode()">------</div>
+      <div class="copy-hint">Click the seal to copy · Share with allies</div>
+      <div class="divider">✦</div>
+      <div id="lobbyPlayers" style="min-height:60px;margin-bottom:16px;"><div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text-dim);letter-spacing:2px;text-align:center;padding:12px;">Awaiting warriors...</div></div>
+      <button class="gothic-btn wide" id="startMpBtn" onclick="startMultiplayer()" style="opacity:0.5;">⚔ Begin Slaughter</button>
+    </div>
+    <div id="mpJoinSection" style="display:none;">
+      <label class="gothic-input-label">Enter Battle Code</label>
+      <input class="gothic-input" id="joinCodeInput" maxlength="6" placeholder="X X X X X X" style="letter-spacing:8px;text-align:center;" oninput="this.value=this.value.toUpperCase()">
+      <div style="height:14px;"></div>
+      <button class="gothic-btn wide" onclick="joinRoom()">⚔ Join Battle</button>
+    </div>
+    <div class="divider">✦</div>
+    <button class="gothic-btn wide danger" onclick="showScreen('modeScreen')">← Retreat</button>
+  </div>
+</div>
+
+<!-- SCREEN 4: GAME -->
+<div class="screen" id="gameScreen">
+  <canvas id="gameCanvas"></canvas>
+  <div id="gameUI">
+    <div class="hud-top">
+      <div class="hud-stat"><span class="hud-label">Score</span><span class="hud-value" id="hudScore">0</span></div>
+      <div class="hud-stat" style="text-align:center;"><span class="hud-label">Wave</span><span class="hud-value" id="hudWave">1</span></div>
+      <div class="hud-stat" style="text-align:right;"><span class="hud-label">Kills</span><span class="hud-value" id="hudKills">0</span></div>
+    </div>
+    <div id="waveAnnounce"></div>
+    <div id="surgeWarning">⚠ Horde Incoming ⚠</div>
+    <div id="mpPlayers"></div>
+    <div id="bladeHUD">
+      <div id="bladeTierLabel">Blade Tier</div>
+      <div id="bladeTierName" style="color:#e0d0ff;">I · Spectral</div>
+      <div id="bladeProgressBar"><div id="bladeProgressFill" style="width:0%;background:#c084fc;"></div></div>
+    </div>
+    <div class="hud-health"><div class="hud-health-label">Vitality</div><div class="hud-health-bar"><div class="hud-health-fill" id="healthFill" style="width:100%"></div></div></div>
+  </div>
+  <div id="tierFlash"></div>
+  <div id="pauseOverlay">
+    <div style="font-size:64px;">💀</div>
+    <h2 id="deathTitle">Thou Art Slain</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="sub" id="finalSub">Wave 1 · 0 Kills</div>
+    <div style="height:10px;"></div>
+    <div class="btn-row">
+      <button class="gothic-btn" onclick="restartGame()">⚔ Rise Again</button>
+      <button class="gothic-btn danger" onclick="quitGame()">☠ Retreat</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  AUDIO ENGINE (Web Audio API)
+// ═══════════════════════════════════════════
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTone(freq, type, dur, vol=0.3, detune=0) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type; osc.frequency.value = freq; osc.detune.value = detune;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function playTierUpSound(tierIdx) {
+  // Majestic ascending fanfare
+  const notes = [261, 329, 392, 523, 659, 784, 1046];
+  const baseFreq = notes[Math.min(tierIdx, notes.length-1)];
+  const delays = [0, 0.08, 0.16, 0.28, 0.42];
+  const freqs = [baseFreq, baseFreq*1.25, baseFreq*1.5, baseFreq*2, baseFreq*2.5];
+  delays.forEach((d, i) => {
+    setTimeout(() => {
+      playTone(freqs[i], 'sine', 0.5, 0.25);
+      playTone(freqs[i]*2, 'triangle', 0.3, 0.1);
+    }, d * 1000);
+  });
+  // Golden tier: full triumphant chord
+  if (tierIdx >= 4) {
+    setTimeout(() => {
+      [523,659,784,1046,1318].forEach(f => playTone(f, 'sine', 1.2, 0.18));
+      playTone(261, 'sawtooth', 0.8, 0.08);
+    }, 500);
+  }
+}
+function playKillSound() {
+  playTone(180 + Math.random()*60, 'sawtooth', 0.08, 0.06);
+}
+
+// ═══════════════════════════════════════════
+//  BLADE TIER SYSTEM
+// ═══════════════════════════════════════════
+const BLADE_TIERS = [
+  // killsNeeded: brutally gated. Most players die before tier 4.
+  { name:'I · Ashen',      color:'#a0a0b8', glow:'rgba(160,160,184,0.5)', trailColor:'rgba(160,160,184,', damage:1,    killsNeeded:0   },
+  { name:'II · Crimson',   color:'#ff4466', glow:'rgba(255,68,102,0.6)',   trailColor:'rgba(255,68,102,',  damage:1.3,  killsNeeded:20  },
+  { name:'III · Obsidian', color:'#6366f1', glow:'rgba(99,102,241,0.65)',  trailColor:'rgba(99,102,241,',  damage:1.7,  killsNeeded:50  },
+  { name:'IV · Verdant',   color:'#4ade80', glow:'rgba(74,222,128,0.7)',   trailColor:'rgba(74,222,128,',  damage:2.2,  killsNeeded:90  },
+  { name:'V · Sapphire',   color:'#38bdf8', glow:'rgba(56,189,248,0.75)', trailColor:'rgba(56,189,248,',  damage:2.8,  killsNeeded:150 },
+  { name:'VI · Inferno',   color:'#f97316', glow:'rgba(249,115,22,0.75)', trailColor:'rgba(249,115,22,',  damage:3.5,  killsNeeded:240 },
+  { name:'VII · Void',     color:'#e879f9', glow:'rgba(232,121,249,0.8)', trailColor:'rgba(232,121,249,', damage:4.5,  killsNeeded:370 },
+  { name:'VIII · Storm',   color:'#facc15', glow:'rgba(250,204,21,0.8)',   trailColor:'rgba(250,204,21,',  damage:5.5,  killsNeeded:560 },
+  { name:'IX · Celestial', color:'#f0f9ff', glow:'rgba(240,249,255,0.9)', trailColor:'rgba(240,249,255,', damage:7,    killsNeeded:800 },
+  { name:'X · Golden',     color:'#fbbf24', glow:'rgba(251,191,36,1.0)',   trailColor:'rgba(251,191,36,',  damage:12,   killsNeeded:1200},
+];
+let currentTier = 0;
+let tierUpAnim = 0; // frames of upgrade animation
+let tierUpParticles = [];
+
+function checkTierUp(newKills) {
+  const next = BLADE_TIERS[currentTier + 1];
+  if (!next) return;
+  // progress toward next tier
+  const prev = BLADE_TIERS[currentTier].killsNeeded;
+  const pct = Math.min((newKills - prev) / (next.killsNeeded - prev), 1);
+  document.getElementById('bladeProgressFill').style.width = (pct * 100) + '%';
+  if (newKills >= next.killsNeeded) {
+    currentTier++;
+    triggerTierUp();
+  }
+}
+function triggerTierUp() {
+  const tier = BLADE_TIERS[currentTier];
+  // Update HUD
+  const nameEl = document.getElementById('bladeTierName');
+  nameEl.textContent = tier.name;
+  nameEl.style.color = tier.color;
+  document.getElementById('bladeProgressFill').style.background = tier.color;
+  document.getElementById('bladeProgressFill').style.width = '0%';
+  // Screen flash
+  const flash = document.getElementById('tierFlash');
+  flash.style.background = tier.glow.replace('0.6','0.18').replace('0.7','0.18').replace('0.9','0.22');
+  flash.style.opacity = '1';
+  setTimeout(() => { flash.style.opacity = '0'; }, 400);
+  // Tier-up particles burst from hero
+  if (hero) {
+    for (let i = 0; i < 40; i++) {
+      const a = (Math.PI * 2 / 40) * i;
+      const spd = 4 + Math.random() * 6;
+      tierUpParticles.push({
+        x: hero.x, y: hero.y,
+        vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
+        color: tier.color, r: Math.random() * 6 + 3, life: 1,
+        spin: Math.random() * 0.3 - 0.15
+      });
+    }
+  }
+  tierUpAnim = 90; // 1.5s of upgrade animation on blades
+  // Toast + sound
+  showToast(`Blade tier unlocked: ${tier.name}!`);
+  playTierUpSound(currentTier);
+}
+
+// ═══════════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════════
+const SEED_LB = [
+  {name:'Valdris the Fell',score:18450},{name:'Morgaine',score:14200},
+  {name:'Sir Craven',score:11880},{name:'The Pale Knight',score:9300},
+  {name:'Agatha Vex',score:7650},{name:'Ironhide',score:5400},
+  {name:'Brother Donn',score:3200},
+];
+function getLB() {
+  try {
+    const s=JSON.parse(localStorage.getItem('zs_lb')||'[]');
+    // Inject current live session if playing
+    let live=[];
+    if(typeof score!=='undefined'&&score>0&&playerName){
+      live=[{name:playerName,score,_live:true}];
+    }
+    const all=[...SEED_LB,...s,...live];
+    // Deduplicate: keep highest score per name (prefer live over stored for current player)
+    const map={};
+    all.forEach(e=>{if(!map[e.name]||e.score>map[e.name].score)map[e.name]={...e};});
+    return Object.values(map).sort((a,b)=>b.score-a.score).slice(0,20);
+  }
+  catch(e){return SEED_LB;}
+}
+function saveLBEntry(name,score) {
+  try { const s=JSON.parse(localStorage.getItem('zs_lb')||'[]'); s.push({name,score}); localStorage.setItem('zs_lb',JSON.stringify(s)); } catch(e){}
+}
+
+let playerName='Warrior', lbTabMode='lb', currentScreen='startScreen';
+let isMultiplayer=false, isHost=false, roomCode='', mpPeers={};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentScreen=id;
+}
+function switchTab(mode) {
+  lbTabMode=mode;
+  document.getElementById('lbTab').classList.toggle('active',mode==='lb');
+  document.getElementById('nearTab').classList.toggle('active',mode==='near');
+  renderLB();
+}
+function renderLB() {
+  const name=playerName; const lb=getLB(); const myIdx=lb.findIndex(e=>e.name===name);
+  let rows=lbTabMode==='near'&&myIdx>=0?lb.slice(Math.max(0,myIdx-3),Math.min(lb.length,myIdx+4)).map((e,i)=>({...e,_rank:Math.max(0,myIdx-3)+i+1})):lb.map((e,i)=>({...e,_rank:i+1}));
+  document.getElementById('lbRows').innerHTML=rows.map(e=>{
+    const isYou=e.name===name; const isTop=e._rank<=3; const medals=['🥇','🥈','🥉'];
+    const liveBadge=e._live?` <span style="font-size:9px;color:#4ade80;letter-spacing:1px;">▶ LIVE</span>`:'';
+    return `<div class="lb-row${isYou?' you':''}"><span class="lb-rank${isTop?' top':''}">${isTop?medals[e._rank-1]:'#'+e._rank}</span><span class="lb-name">${e.name}${isYou?' (You)':''}${liveBadge}</span><span class="lb-score">${e.score.toLocaleString()}</span></div>`;
+  }).join('');
+}
+renderLB();
+// Auto-refresh LB every 3s so live scores update
+setInterval(()=>{ if(currentScreen==='startScreen') renderLB(); }, 3000);
+
+function goToModeSelect() { playerName=document.getElementById('nameInput').value.trim()||'Warrior'; renderLB(); showScreen('modeScreen'); }
+function goToMultiplayer() {
+  showScreen('mpScreen'); roomCode=generateCode();
+  document.getElementById('roomCodeDisplay').textContent=roomCode;
+  document.getElementById('startMpBtn').style.opacity='0.5';
+  setTimeout(()=>{
+    const n=['Ironhide','Valdris','Sister Agatha','The Pale One'][Math.floor(Math.random()*4)];
+    mpPeers={peer1:{name:n,alive:true,x:0,y:0}}; renderLobbyPlayers();
+    document.getElementById('startMpBtn').style.opacity='1'; showToast(n+' joined the battle!');
+  },2800);
+}
+function generateCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:6},()=>c[Math.floor(Math.random()*c.length)]).join('');}
+function copyRoomCode(){navigator.clipboard?.writeText(roomCode).catch(()=>{});showToast('Battle code copied!');}
+function switchMpTab(tab){
+  document.getElementById('hostTab').classList.toggle('active',tab==='host');
+  document.getElementById('joinTab').classList.toggle('active',tab==='join');
+  document.getElementById('mpHostSection').style.display=tab==='host'?'block':'none';
+  document.getElementById('mpJoinSection').style.display=tab==='join'?'block':'none';
+}
+function joinRoom(){const code=document.getElementById('joinCodeInput').value.trim();if(code.length<4){showToast('Enter a valid code');return;}roomCode=code;mpPeers={host:{name:'The Host',alive:true,x:0,y:0}};showToast('Joined battle '+code+'!');setTimeout(()=>{isMultiplayer=true;isHost=false;startSinglePlayer(true);},900);}
+function renderLobbyPlayers(){const names=[playerName,...Object.values(mpPeers).map(p=>p.name)];document.getElementById('lobbyPlayers').innerHTML=names.map(n=>`<div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text);border-bottom:1px solid var(--border);padding:8px 12px;letter-spacing:1px;">⚔ ${n}</div>`).join('');}
+function startMultiplayer(){if(!Object.keys(mpPeers).length){showToast('Await thy allies!');return;}isMultiplayer=true;isHost=true;startSinglePlayer(true);}
+
+let toastTimer;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2600);}
+
+function saveProgress(){
+  const name=document.getElementById('nameInput').value.trim()||playerName||'Warrior';
+  // Gather all stored entries
+  let stored=[];
+  try{stored=JSON.parse(localStorage.getItem('zs_lb')||'[]');}catch(e){}
+  // Find best score for this player
+  const existing=stored.filter(e=>e.name===name);
+  const bestStored=existing.length?Math.max(...existing.map(e=>e.score)):0;
+  const currentScore=(typeof score!=='undefined'&&score>0)?score:0;
+  if(currentScore>bestStored&&currentScore>0){
+    stored.push({name,score:currentScore,savedAt:Date.now()});
+    localStorage.setItem('zs_lb',JSON.stringify(stored));
+    showToast('Progress saved! Score: '+currentScore.toLocaleString());
+  } else if(bestStored>0){
+    showToast('Best score '+bestStored.toLocaleString()+' already saved!');
+  } else {
+    showToast('Play a game first to save your score!');
+  }
+  renderLB();
+}
+
+// ═══════════════════════════════════════════
+//  BG CANVAS
+// ═══════════════════════════════════════════
+const bgCvs=document.getElementById('bgCanvas'),bgCtx=bgCvs.getContext('2d');
+let bgPts=[];
+function initBG(){bgCvs.width=window.innerWidth;bgCvs.height=window.innerHeight;bgPts=Array.from({length:80},()=>({x:Math.random()*bgCvs.width,y:Math.random()*bgCvs.height,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,r:Math.random()*1.5+0.3,a:Math.random()}));}
+function animBG(){bgCtx.clearRect(0,0,bgCvs.width,bgCvs.height);bgPts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=bgCvs.width;if(p.x>bgCvs.width)p.x=0;if(p.y<0)p.y=bgCvs.height;if(p.y>bgCvs.height)p.y=0;bgCtx.beginPath();bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2);bgCtx.fillStyle=`rgba(140,100,200,${p.a*0.4})`;bgCtx.fill();});requestAnimationFrame(animBG);}
+initBG();animBG();window.addEventListener('resize',initBG);
+
+// ═══════════════════════════════════════════
+//  HERO PREVIEW
+// ═══════════════════════════════════════════
+const hpCvs=document.getElementById('heroPreviewCanvas'),hpCtx=hpCvs.getContext('2d');
+let hpAngle=0;
+function drawHeroPreview(){
+  hpCtx.clearRect(0,0,140,140);
+  const cx=70,cy=70,r=22; hpAngle+=0.025;
+  const gl=hpCtx.createRadialGradient(cx,cy,r,cx,cy,r*3.5);
+  gl.addColorStop(0,'rgba(160,100,255,0.25)');gl.addColorStop(1,'rgba(0,0,0,0)');
+  hpCtx.fillStyle=gl;hpCtx.beginPath();hpCtx.arc(cx,cy,r*3.5,0,Math.PI*2);hpCtx.fill();
+  hpCtx.fillStyle='#c084fc';hpCtx.beginPath();hpCtx.arc(cx,cy,r,0,Math.PI*2);hpCtx.fill();
+  hpCtx.strokeStyle='#e0b0ff';hpCtx.lineWidth=2;hpCtx.stroke();
+  hpCtx.fillStyle='#e0c0ff';hpCtx.beginPath();hpCtx.arc(cx-5,cy-6,6,0,Math.PI*2);hpCtx.fill();
+  for(let i=0;i<4;i++){const a=hpAngle+(Math.PI*2/4)*i,sx=cx+Math.cos(a)*(r+14),sy=cy+Math.sin(a)*(r+14);hpCtx.save();hpCtx.translate(sx,sy);hpCtx.rotate(a+Math.PI/4);hpCtx.strokeStyle='#f0d0ff';hpCtx.lineWidth=2;hpCtx.lineCap='round';hpCtx.beginPath();hpCtx.moveTo(0,-8);hpCtx.lineTo(0,8);hpCtx.stroke();hpCtx.beginPath();hpCtx.moveTo(-4,-2);hpCtx.lineTo(4,-2);hpCtx.stroke();hpCtx.restore();}
+  requestAnimationFrame(drawHeroPreview);
+}
+drawHeroPreview();
+
+// ═══════════════════════════════════════════
+//  GAME ENGINE
+// ═══════════════════════════════════════════
+const gc=document.getElementById('gameCanvas'),gx=gc.getContext('2d');
+let W,H;
+let hero,zombies,blades,particles,score,kills,wave,health,maxHealth;
+let spawnTimer=0,waveTimer=0,nextSpawn=100,bladeTimer=0,gameRunning=false;
+let mouse={x:400,y:300};
+let mpPeerState={},myReviving=null,reviveTimer=0;
+// Surge mechanic
+let surgeActive=false,surgeTimer=0,surgeWaves=0;
+let dominanceWave=0; // wave at which tier5 was achieved
+
+function startSinglePlayer(mp=false) {
+  isMultiplayer=!!mp;
+  playerName=document.getElementById('nameInput').value.trim()||'Warrior';
+  showScreen('gameScreen');
+  document.getElementById('pauseOverlay').classList.remove('active');
+  gc.width=window.innerWidth;gc.height=window.innerHeight;
+  W=gc.width;H=gc.height;
+  mouse={x:W/2,y:H/2};
+  hero={x:W/2,y:H/2,r:18,angle:0,alive:true};
+  zombies=[];blades=[];particles=[];tierUpParticles=[];
+  score=0;kills=0;wave=1;health=100;maxHealth=100;
+  spawnTimer=0;waveTimer=0;nextSpawn=70;bladeTimer=0;gameRunning=true;
+  currentTier=0;tierUpAnim=0;surgeActive=false;surgeTimer=0;surgeWaves=0;dominanceWave=0;
+  // Reset blade HUD
+  const t=BLADE_TIERS[0];
+  document.getElementById('bladeTierName').textContent=t.name;
+  document.getElementById('bladeTierName').style.color=t.color;
+  document.getElementById('bladeProgressFill').style.background=t.color;
+  document.getElementById('bladeProgressFill').style.width='0%';
+  updateHUD();
+  if(isMultiplayer) setupMpState();
+  requestAnimationFrame(gameLoop);
+  announceWave(1);
+}
+window.startSinglePlayer=startSinglePlayer;
+
+function setupMpState() {
+  mpPeerState={};
+  Object.values(mpPeers).forEach((p,i)=>{mpPeerState[`peer${i}`]={x:W/2+(i+1)*80,y:H/2+(i+1)*40,alive:true,name:p.name,angle:0,r:18};});
+  renderMPHud();
+  simulatePeers();
+}
+function renderMPHud(){const el=document.getElementById('mpPlayers');if(!isMultiplayer){el.innerHTML='';return;}el.innerHTML=`<div class="mp-player-tag">${playerName}</div>`+Object.values(mpPeerState).map(p=>`<div class="mp-player-tag${p.alive?'':' dead'}">${p.name}${p.alive?'':' ☠'}</div>`).join('');}
+function simulatePeers(){
+  setTimeout(()=>{const ids=Object.keys(mpPeerState);if(ids.length>0&&gameRunning){mpPeerState[ids[0]].alive=false;renderMPHud();showToast(`${mpPeerState[ids[0]].name} has fallen! Move close to revive!`);}},28000);
+  function movePeers(){if(!gameRunning)return;Object.values(mpPeerState).forEach(p=>{if(!p.alive)return;p.x+=(Math.random()-0.5)*3;p.y+=(Math.random()-0.5)*3;p.x=Math.max(30,Math.min(W-30,p.x));p.y=Math.max(30,Math.min(H-30,p.y));p.angle+=0.03;});setTimeout(movePeers,50);}
+  movePeers();
+}
+
+gc.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+gc.addEventListener('touchmove',e=>{e.preventDefault();mouse.x=e.touches[0].clientX;mouse.y=e.touches[0].clientY;},{passive:false});
+
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+
+function spawnZombie(){
+  const edge=Math.floor(Math.random()*4);
+  let x,y;
+  if(edge===0){x=Math.random()*W;y=-30;}else if(edge===1){x=W+30;y=Math.random()*H;}else if(edge===2){x=Math.random()*W;y=H+30;}else{x=-30;y=Math.random()*H;}
+  const rv=Math.random();
+  // From wave 1: already dangerous. Brutes from wave 2. Runners everywhere.
+  const bruteChance = surgeActive?0.45:(wave<2?0.0:wave<4?0.18:wave<6?0.28:0.38);
+  const runnerChance= surgeActive?0.45:(wave<2?0.25:wave<4?0.38:wave<6?0.45:0.50);
+  let type=rv<(1-bruteChance-runnerChance)?'walker':rv<(1-bruteChance)?'runner':'brute';
+  // Speed scales HARD with wave. After wave 3 walkers feel fast, runners feel terrifying.
+  const waveSpeedBonus = wave * 0.12;
+  const props={
+    walker:{speed:1.4+waveSpeedBonus, hp:3,  maxHp:3,  r:14,bodyColor:'#1e3a1e',skinColor:'#2e5a2e',eyeColor:'#ff4466'},
+    runner:{speed:2.8+waveSpeedBonus, hp:1,  maxHp:1,  r:11,bodyColor:'#3a1a1a',skinColor:'#6a2a2a',eyeColor:'#ffaa22'},
+    brute: {speed:0.9+waveSpeedBonus*0.6, hp:10+wave*2,maxHp:10+wave*2,r:22,bodyColor:'#1a1a3a',skinColor:'#2a2a6a',eyeColor:'#aa22ff'}
+  }[type];
+  zombies.push({x,y,type,wobble:Math.random()*Math.PI*2,...props});
+}
+
+function fireBlades(maxTargets){
+  if(!zombies.length)return;
+  const tier=BLADE_TIERS[currentTier];
+  const maxB=Math.min(maxTargets||1,zombies.length);
+  // Detection range: starts short (150px), grows with tier
+  const range=150+currentTier*20;
+  [...zombies].sort((a,b)=>dist(hero,a)-dist(hero,b)).slice(0,maxB).forEach(z=>{
+    if(dist(hero,z)<range){
+      const angle=Math.atan2(z.y-hero.y,z.x-hero.x);
+      blades.push({x:hero.x,y:hero.y,angle,speed:8+currentTier*0.8,damage:tier.damage,r:6+currentTier*0.5,trail:[],tierIdx:currentTier,upgrading:tierUpAnim>0});
+    }
+  });
+}
+
+function gameLoop(){
+  if(!gameRunning)return;
+  gx.clearRect(0,0,W,H);
+  drawBg();
+
+  // Wave logic — waves every 22s (not 30s), pressure ramps fast
+  waveTimer++;
+  if(waveTimer>1320){wave++;waveTimer=0;nextSpawn=Math.max(12,90-wave*10);updateHUD();announceWave(wave);
+    if(dominanceWave>0){surgeWaves++;
+      if(surgeWaves===2&&!surgeActive){surgeActive=true;showSurgeWarning();}
+    }
+  }
+  spawnTimer++;
+  // Base spawn: starts at 70 frames (~1.2s), drops fast. Surge halves it.
+  const baseSpawn=surgeActive?Math.max(8,nextSpawn/2):nextSpawn;
+  if(spawnTimer>=baseSpawn){
+    spawnZombie();
+    // Wave 3+: occasionally spawn 2 at once from opposite edges
+    if(wave>=3&&Math.random()<0.35)spawnZombie();
+    // Wave 5+: sometimes triple spawn
+    if(wave>=5&&Math.random()<0.25)spawnZombie();
+    if(surgeActive&&Math.random()<0.6)spawnZombie();
+    spawnTimer=0;
+  }
+  bladeTimer++;
+  // Blades fire slower early — only 1 target at tier 1, scales up
+  const maxTargets=Math.min(1+Math.floor(currentTier*0.8)+Math.floor(wave*0.3),8);
+  if(bladeTimer>=Math.max(22,38-wave*2-currentTier*2)){fireBlades(maxTargets);bladeTimer=0;}
+  if(tierUpAnim>0)tierUpAnim--;
+
+  // Hero move
+  hero.x+=(mouse.x-hero.x)*0.14;
+  hero.y+=(mouse.y-hero.y)*0.14;
+  hero.x=Math.max(hero.r,Math.min(W-hero.r,hero.x));
+  hero.y=Math.max(hero.r,Math.min(H-hero.r,hero.y));
+  hero.angle+=0.04;
+
+  // Blades
+  for(let i=blades.length-1;i>=0;i--){
+    const b=blades[i];
+    b.trail.push({x:b.x,y:b.y});
+    if(b.trail.length>8)b.trail.shift();
+    b.x+=Math.cos(b.angle)*b.speed;
+    b.y+=Math.sin(b.angle)*b.speed;
+    let hit=false;
+    for(let j=zombies.length-1;j>=0;j--){
+      const z=zombies[j];
+      if(dist(b,z)<b.r+z.r){
+        z.hp-=b.damage;
+        spawnPfx(z.x,z.y,BLADE_TIERS[b.tierIdx].color,5);
+        hit=true;
+        if(z.hp<=0){
+          spawnPfx(z.x,z.y,z.skinColor,16);
+          zombies.splice(j,1);kills++;score+=wave*10*(b.tierIdx+1);
+          updateHUD();checkTierUp(kills);playKillSound();
+          if(currentTier>=4&&dominanceWave===0)dominanceWave=wave; // golden achieved
+        }
+        break;
+      }
+    }
+    if(hit||b.x<-20||b.x>W+20||b.y<-20||b.y>H+20)blades.splice(i,1);
+  }
+
+  // Zombies
+  zombies.forEach(z=>{
+    z.wobble+=0.12;
+    const dx=hero.x-z.x,dy=hero.y-z.y,d=Math.hypot(dx,dy);
+    if(d>hero.r+z.r+2){z.x+=dx/d*z.speed;z.y+=dy/d*z.speed;}
+    else{health-=0.9+(z.type==='brute'?0.6:0)+(wave*0.08);document.getElementById('healthFill').style.width=(health/maxHealth*100)+'%';}
+    drawZombie(z,dx,dy);
+  });
+
+  // Blades draw
+  blades.forEach(b=>drawBlade(b));
+
+  // Multiplayer peers
+  if(isMultiplayer){
+    Object.entries(mpPeerState).forEach(([id,p])=>{
+      drawPeer(p);
+      if(!p.alive&&dist(hero,p)<80){
+        if(myReviving!==id){myReviving=id;reviveTimer=0;}
+        reviveTimer++;
+        drawReviveRing(p,reviveTimer/300);
+        if(reviveTimer>=300){p.alive=true;myReviving=null;reviveTimer=0;showToast(`${p.name} has been revived!`);renderMPHud();}
+      } else if(myReviving===id&&dist(hero,p)>=80){myReviving=null;reviveTimer=0;}
+    });
+  }
+
+  // Hero
+  drawHero();
+
+  // Tier-up particles
+  for(let i=tierUpParticles.length-1;i>=0;i--){
+    const p=tierUpParticles[i];
+    p.x+=p.vx;p.y+=p.vy;p.life-=0.025;p.vx*=0.97;p.vy*=0.97;
+    if(p.life<=0){tierUpParticles.splice(i,1);continue;}
+    gx.save();gx.globalAlpha=p.life;
+    gx.fillStyle=p.color;
+    // Diamond shape for tier-up particles
+    gx.translate(p.x,p.y);gx.rotate(Date.now()*0.003+i);
+    gx.beginPath();gx.moveTo(0,-p.r*p.life);gx.lineTo(p.r*0.5*p.life,0);gx.lineTo(0,p.r*p.life);gx.lineTo(-p.r*0.5*p.life,0);gx.closePath();gx.fill();
+    gx.restore();
+  }
+
+  // Regular particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx;p.y+=p.vy;p.life-=0.04;p.vy+=0.08;
+    if(p.life<=0){particles.splice(i,1);continue;}
+    gx.save();gx.globalAlpha=p.life;gx.fillStyle=p.color;gx.beginPath();gx.arc(p.x,p.y,p.r*p.life,0,Math.PI*2);gx.fill();gx.restore();
+  }
+
+  if(health<=0){health=0;endGame();return;}
+  requestAnimationFrame(gameLoop);
+}
+
+function drawBg(){
+  gx.fillStyle='#05050a';gx.fillRect(0,0,W,H);
+  gx.strokeStyle='#0e0e1a';gx.lineWidth=0.5;
+  const gs=44;
+  for(let x=0;x<W;x+=gs){gx.beginPath();gx.moveTo(x,0);gx.lineTo(x,H);gx.stroke();}
+  for(let y=0;y<H;y+=gs){gx.beginPath();gx.moveTo(0,y);gx.lineTo(W,y);gx.stroke();}
+  const vig=gx.createRadialGradient(W/2,H/2,H*0.15,W/2,H/2,H*0.85);
+  vig.addColorStop(0,'rgba(0,0,0,0)');vig.addColorStop(1,'rgba(0,0,0,0.65)');
+  gx.fillStyle=vig;gx.fillRect(0,0,W,H);
+  // Surge: pulsing red border
+  if(surgeActive){
+    const pulse=Math.sin(Date.now()*0.004)*0.4+0.6;
+    gx.strokeStyle=`rgba(200,30,30,${pulse*0.5})`;gx.lineWidth=6;gx.strokeRect(3,3,W-6,H-6);
+  }
+}
+
+function drawHero(){
+  const h=hero;
+  const tier=BLADE_TIERS[currentTier];
+  const isUpgrading=tierUpAnim>0;
+  gx.save();gx.translate(h.x,h.y);
+  // Aura (tier-colored when upgrading)
+  const auraColor=isUpgrading?tier.glow:'rgba(160,100,255,0.18)';
+  const gl=gx.createRadialGradient(0,0,h.r,0,0,h.r*(isUpgrading?4.5:3.5));
+  gl.addColorStop(0,auraColor);gl.addColorStop(1,'rgba(0,0,0,0)');
+  gx.fillStyle=gl;gx.beginPath();gx.arc(0,0,h.r*(isUpgrading?4.5:3.5),0,Math.PI*2);gx.fill();
+  // Body
+  gx.fillStyle='#c084fc';gx.beginPath();gx.arc(0,0,h.r,0,Math.PI*2);gx.fill();
+  gx.strokeStyle='#e0b0ff';gx.lineWidth=2;gx.stroke();
+  gx.fillStyle='#e0c0ff';gx.beginPath();gx.arc(-5,-5,6,0,Math.PI*2);gx.fill();
+  // Orbiting swords (tier-colored)
+  const numS=Math.min(3+Math.floor(wave*0.5),7);
+  const swordColor=isUpgrading?tier.color:'#f0d0ff';
+  if(isUpgrading){gx.shadowColor=tier.color;gx.shadowBlur=12;}
+  for(let i=0;i<numS;i++){
+    const a=h.angle+(Math.PI*2/numS)*i;
+    const extraR=isUpgrading?(Math.sin(tierUpAnim*0.15)*4):0;
+    const sx=Math.cos(a)*(h.r+11+extraR),sy=Math.sin(a)*(h.r+11+extraR);
+    gx.save();gx.translate(sx,sy);gx.rotate(a+Math.PI/4+(isUpgrading?tierUpAnim*0.05:0));
+    gx.strokeStyle=swordColor;gx.lineWidth=2;gx.lineCap='round';
+    gx.beginPath();gx.moveTo(0,-7);gx.lineTo(0,7);gx.stroke();
+    gx.beginPath();gx.moveTo(-3,-2);gx.lineTo(3,-2);gx.stroke();
+    gx.restore();
+  }
+  gx.restore();
+}
+
+function drawZombie(z, dxToHero, dyToHero) {
+  gx.save();gx.translate(z.x,z.y);
+
+  // HP bar for multi-hp enemies
+  if(z.maxHp>1){
+    const bw=z.r*2.6;
+    gx.fillStyle='#0a0a1a';gx.fillRect(-bw/2,-z.r-13,bw,5);
+    const hpPct=z.hp/z.maxHp;
+    const hpColor=hpPct>0.6?'#22cc44':hpPct>0.3?'#ffaa22':'#ff2244';
+    gx.fillStyle=hpColor;gx.fillRect(-bw/2,-z.r-13,bw*hpPct,5);
+  }
+
+  // Shadow
+  gx.fillStyle='rgba(0,0,0,0.3)';gx.beginPath();gx.ellipse(0,z.r+2,z.r*0.9,4,0,0,Math.PI*2);gx.fill();
+
+  // Wobble
+  const wb=Math.sin(z.wobble)*0.12;gx.rotate(wb);
+
+  // Body - zombie skull shape: bigger head, narrower jaw
+  const r=z.r;
+  // Head (circle)
+  gx.fillStyle=z.skinColor;
+  gx.beginPath();gx.arc(0,-r*0.1,r,0,Math.PI*2);gx.fill();
+  // Darker cranium top
+  gx.fillStyle=z.bodyColor;
+  gx.beginPath();gx.arc(0,-r*0.3,r*0.75,Math.PI,0);gx.fill();
+  // Skin back on sides
+  gx.fillStyle=z.skinColor;
+  gx.beginPath();gx.arc(0,-r*0.1,r,0,Math.PI);gx.fill();
+  // Jaw narrowing
+  gx.fillStyle=z.skinColor;
+  gx.beginPath();
+  gx.moveTo(-r*0.7,r*0.2);gx.quadraticCurveTo(-r*0.5,r*0.85,0,r*0.9);gx.quadraticCurveTo(r*0.5,r*0.85,r*0.7,r*0.2);gx.closePath();
+  gx.fill();
+  // Outline
+  gx.strokeStyle='rgba(0,0,0,0.4)';gx.lineWidth=0.8;gx.stroke();
+
+  // Cheekbones
+  gx.fillStyle=z.bodyColor;
+  gx.beginPath();gx.ellipse(-r*0.55,r*0.05,r*0.22,r*0.12,0,0,Math.PI*2);gx.fill();
+  gx.beginPath();gx.ellipse(r*0.55,r*0.05,r*0.22,r*0.12,0,0,Math.PI*2);gx.fill();
+
+  // === TRACKING EYES ===
+  // Calculate direction to hero (in zombie's local rotated space)
+  const heroAngle = Math.atan2(dyToHero, dxToHero) - wb;
+  const eyeTrack = 2.2; // max px the pupil can shift
+  const eyePupilX = Math.cos(heroAngle) * eyeTrack;
+  const eyePupilY = Math.sin(heroAngle) * eyeTrack;
+
+  const eyeR = r * 0.28;
+  const eyeOffX = r * 0.32;
+  const eyeY = -r * 0.15;
+
+  // Left eye
+  gx.fillStyle='#f0e8e0'; // sclera - slightly yellow/off-white (zombie)
+  gx.beginPath();gx.ellipse(-eyeOffX,eyeY,eyeR,eyeR*0.85,0,0,Math.PI*2);gx.fill();
+  gx.strokeStyle='rgba(0,0,0,0.5)';gx.lineWidth=0.5;gx.stroke();
+  // Left iris
+  gx.fillStyle=z.eyeColor;
+  gx.beginPath();gx.arc(-eyeOffX+eyePupilX*0.7,eyeY+eyePupilY*0.7,eyeR*0.6,0,Math.PI*2);gx.fill();
+  // Left pupil
+  gx.fillStyle='#000';
+  gx.beginPath();gx.arc(-eyeOffX+eyePupilX,eyeY+eyePupilY,eyeR*0.28,0,Math.PI*2);gx.fill();
+  // Left glint
+  gx.fillStyle='rgba(255,255,255,0.7)';
+  gx.beginPath();gx.arc(-eyeOffX+eyePupilX-1,eyeY+eyePupilY-1,eyeR*0.1,0,Math.PI*2);gx.fill();
+
+  // Right eye
+  gx.fillStyle='#f0e8e0';
+  gx.beginPath();gx.ellipse(eyeOffX,eyeY,eyeR,eyeR*0.85,0,0,Math.PI*2);gx.fill();
+  gx.strokeStyle='rgba(0,0,0,0.5)';gx.lineWidth=0.5;gx.stroke();
+  gx.fillStyle=z.eyeColor;
+  gx.beginPath();gx.arc(eyeOffX+eyePupilX*0.7,eyeY+eyePupilY*0.7,eyeR*0.6,0,Math.PI*2);gx.fill();
+  gx.fillStyle='#000';
+  gx.beginPath();gx.arc(eyeOffX+eyePupilX,eyeY+eyePupilY,eyeR*0.28,0,Math.PI*2);gx.fill();
+  gx.fillStyle='rgba(255,255,255,0.7)';
+  gx.beginPath();gx.arc(eyeOffX+eyePupilX-1,eyeY+eyePupilY-1,eyeR*0.1,0,Math.PI*2);gx.fill();
+
+  // Nose (two holes)
+  gx.fillStyle='rgba(0,0,0,0.5)';
+  gx.beginPath();gx.ellipse(-r*0.1,r*0.18,r*0.07,r*0.09,0.2,0,Math.PI*2);gx.fill();
+  gx.beginPath();gx.ellipse(r*0.1,r*0.18,r*0.07,r*0.09,-0.2,0,Math.PI*2);gx.fill();
+
+  // Mouth - grimace/snarl (NO smile)
+  gx.strokeStyle='rgba(20,0,0,0.9)';gx.lineWidth=1.5;gx.lineCap='round';
+  // Top lip pulled back exposing teeth
+  gx.beginPath();
+  gx.moveTo(-r*0.42,r*0.45);
+  gx.quadraticCurveTo(-r*0.15,r*0.35,0,r*0.37);
+  gx.quadraticCurveTo(r*0.15,r*0.35,r*0.42,r*0.45);
+  gx.stroke();
+  // Bottom pulled down
+  gx.beginPath();
+  gx.moveTo(-r*0.35,r*0.48);
+  gx.quadraticCurveTo(0,r*0.68,r*0.35,r*0.48);
+  gx.stroke();
+  // Teeth (3 visible)
+  gx.fillStyle='#c8b88a';
+  [-r*0.22,-r*0.02,r*0.18].forEach(tx=>{
+    gx.beginPath();gx.rect(tx,r*0.37,r*0.14,r*0.12);gx.fill();
+  });
+  // Blood drip (random per zombie based on wobble seed)
+  if(z.r>12){
+    gx.fillStyle='rgba(180,20,20,0.8)';
+    gx.beginPath();
+    gx.arc(r*0.08,r*0.55,r*0.06,0,Math.PI*2);gx.fill();
+    gx.fillRect(r*0.04,r*0.38,r*0.08,r*0.18);
+  }
+
+  gx.restore();
+}
+
+function drawBlade(b){
+  const tier=BLADE_TIERS[b.tierIdx];
+  const isUpgrading=b.upgrading;
+  gx.save();
+  // Trail
+  b.trail.forEach((t,i)=>{
+    const alpha=(i/b.trail.length)*0.45;
+    gx.beginPath();gx.arc(t.x,t.y,b.r*(i/b.trail.length)*0.8,0,Math.PI*2);
+    gx.fillStyle=tier.trailColor+alpha+')';gx.fill();
+  });
+  gx.translate(b.x,b.y);
+  // Spin faster when upgrading
+  gx.rotate(b.angle+Math.PI/4+(isUpgrading?Date.now()*0.02:0));
+  gx.fillStyle=tier.color;
+  gx.shadowColor=tier.color;gx.shadowBlur=isUpgrading?20:10;
+  // Diamond blade
+  const sz=b.r*(isUpgrading?1.8:1.5);
+  gx.beginPath();gx.moveTo(0,-sz);gx.lineTo(b.r*0.6,0);gx.lineTo(0,sz);gx.lineTo(-b.r*0.6,0);gx.closePath();gx.fill();
+  // Golden tier: extra glow ring
+  if(b.tierIdx>=4){
+    gx.strokeStyle='rgba(251,191,36,0.5)';gx.lineWidth=2;gx.shadowBlur=25;
+    gx.beginPath();gx.arc(0,0,b.r*1.4,0,Math.PI*2);gx.stroke();
+  }
+  gx.restore();
+}
+
+function drawPeer(p){
+  gx.save();gx.translate(p.x,p.y);
+  if(!p.alive){
+    gx.globalAlpha=0.4;gx.fillStyle='#661122';gx.beginPath();gx.arc(0,0,18,0,Math.PI*2);gx.fill();
+    gx.strokeStyle='#ff4466';gx.lineWidth=1;gx.stroke();
+    gx.fillStyle='#ff4466';gx.font='14px serif';gx.textAlign='center';gx.textBaseline='middle';gx.fillText('☠',0,0);
+    gx.globalAlpha=1;
+  } else {
+    const gl=gx.createRadialGradient(0,0,18,0,0,54);
+    gl.addColorStop(0,'rgba(40,200,100,0.15)');gl.addColorStop(1,'rgba(0,0,0,0)');
+    gx.fillStyle=gl;gx.beginPath();gx.arc(0,0,54,0,Math.PI*2);gx.fill();
+    gx.fillStyle='#40c870';gx.beginPath();gx.arc(0,0,18,0,Math.PI*2);gx.fill();
+    gx.strokeStyle='#80ff90';gx.lineWidth=2;gx.stroke();
+    gx.fillStyle='rgba(5,5,15,0.7)';gx.fillRect(-28,-34,56,16);
+    gx.fillStyle='#80ff90';gx.font='9px Cinzel,serif';gx.textAlign='center';gx.textBaseline='middle';gx.fillText(p.name,0,-26);
+  }
+  gx.restore();
+}
+
+function drawReviveRing(p,progress){
+  gx.save();gx.translate(p.x,p.y);
+  const r=38;
+  gx.beginPath();gx.arc(0,0,r,0,Math.PI*2);gx.strokeStyle='rgba(10,40,10,0.5)';gx.lineWidth=10;gx.stroke();
+  gx.beginPath();gx.arc(0,0,r,-Math.PI/2,-Math.PI/2+progress*Math.PI*2);
+  gx.strokeStyle='rgba(34,200,68,0.9)';gx.lineWidth=8;gx.lineCap='round';gx.stroke();
+  // Red cross
+  gx.fillStyle='rgba(220,30,50,0.95)';
+  gx.fillRect(-4,-14,8,28);gx.fillRect(-14,-4,28,8);
+  gx.restore();
+}
+
+function spawnPfx(x,y,color,n){
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=Math.random()*3+1;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,color,r:Math.random()*4+2,life:1});}
+}
+
+function announceWave(w){
+  const el=document.getElementById('waveAnnounce');
+  el.textContent=`Wave ${w}`;el.style.opacity='1';
+  setTimeout(()=>el.style.opacity='0',1800);
+}
+function showSurgeWarning(){
+  const el=document.getElementById('surgeWarning');
+  el.style.opacity='1';
+  // Flash 3 times
+  let flashes=0;
+  const fl=setInterval(()=>{el.style.opacity=el.style.opacity==='1'?'0.2':'1';flashes++;if(flashes>6){clearInterval(fl);el.style.opacity='0';}},300);
+  showToast('The horde has grown ravenous!');
+  playTone(80,'sawtooth',0.8,0.12);playTone(100,'sawtooth',0.8,0.08);
+}
+
+function updateHUD(){
+  document.getElementById('hudScore').textContent=score.toLocaleString();
+  document.getElementById('hudWave').textContent=wave;
+  document.getElementById('hudKills').textContent=kills;
+}
+
+function endGame(){
+  gameRunning=false;
+  saveLBEntry(playerName,score);
+  // Show save confirmation in death screen sub
+  
+  document.getElementById('deathTitle').textContent='Thou Art Slain';
+  document.getElementById('finalScore').textContent=score.toLocaleString();
+  document.getElementById('finalSub').textContent=`Wave ${wave} · ${kills} Kills · Tier ${currentTier+1} Blades`;
+  document.getElementById('pauseOverlay').classList.add('active');
+}
+
+function restartGame(){startSinglePlayer(isMultiplayer);}
+function quitGame(){gameRunning=false;showScreen('startScreen');renderLB();}
+window.restartGame=restartGame;window.quitGame=quitGame;
+
+window.addEventListener('resize',()=>{
+  if(currentScreen==='gameScreen'&&gameRunning){gc.width=window.innerWidth;gc.height=window.innerHeight;W=gc.width;H=gc.height;}
+});
+</script>
+</body>
+</html>
